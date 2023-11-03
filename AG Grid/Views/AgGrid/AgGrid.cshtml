@@ -1,0 +1,133 @@
+﻿@model IEnumerable<AG_Grid.Models.Data>
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Ag-Grid Basic Example</title>
+    <script src="https://unpkg.com/ag-grid-community/dist/ag-grid-community.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-enterprise@30.2.0/dist/ag-grid-enterprise.min.js">
+    </script>
+    <script src="main.js"></script>
+    <style>
+        #myGrid {
+            background-color: black;
+            color: white;
+            margin: auto;
+            padding: 30px;
+        }
+
+       
+    </style>
+</head>
+<body>
+    <h4>Details</h4>
+    <div class="container">
+        <div>
+            <button onclick="onBtExport()" style="margin-bottom: 5px; font-weight: bold">
+                Export to Excel
+            </button>
+        </div>
+
+
+    <div id="myGrid" style="height:800px; width:100%;" class="ag-theme-alpine"></div>
+</body>
+</html>
+
+
+
+<script>
+    console.log(@Html.Raw(Json.Serialize(Model)));
+    var columnDefs = [
+
+
+        { headerName: "id", field: "id" },
+        {
+            headerName: 'Name',
+            children: [
+                { field: 'firstName' },
+                { field: 'lastName' },
+
+            ]
+        },
+        { headerName: "contact", field: "contact" },
+        {
+            headerName: 'Address',
+            children: [
+                { field: 'colony' },
+                { field: 'city' },
+                { field: 'country' },
+
+            ]
+        },
+       
+    ];
+
+    // specify the data
+    var rowData = @Html.Raw(Json.Serialize(Model))
+
+
+        // let the grid know which columns and what data to use
+    var gridOptions = {
+
+        columnDefs: columnDefs,
+        rowData: @Html.Raw(Json.Serialize(Model)),
+
+        // default ColDef, gets applied to every column
+        defaultColDef: {
+            // set the default column width
+            width: 150,
+            // make every column editable
+            editable: true,
+            // make every column use 'text' filter by default
+            filter: 'agTextColumnFilter',
+            // enable floating filters by default
+            floatingFilter: true,
+            // make columns resizable
+            resizable: true,
+            sortable: true,
+
+            // disable cell data types
+            onCellValueChanged: function (d) {
+                
+                // Handle cell value changes here
+                var updatedData = d.data; // Updated row data
+                // Send the updated data to your server-side endpoint for saving
+                UpdatedData(updatedData);
+            },
+
+            
+        },
+
+    };
+
+
+
+
+    // setup the grid after the page has finished loading
+    document.addEventListener('DOMContentLoaded', function () {
+        var gridDiv = document.querySelector('#myGrid');
+        new agGrid.Grid(gridDiv, gridOptions);
+    });
+
+
+    function UpdatedData(updatedData) {
+       
+        // Send an AJAX request to your server to save the updated data
+        // You should replace this with your actual server-side endpoint URL and implementation
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/AgGrid/Edit/' + updatedData.Id, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        // Convert the updated data to JSON
+        var updatedDataJson = JSON.stringify(updatedData);
+
+      
+        // Send the JSON data to the server
+        xhr.send(updatedDataJson);
+    }
+
+    function onBtExport() {
+        gridOptions.api.exportDataAsExcel();
+    }
+</script>
